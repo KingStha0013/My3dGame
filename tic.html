@@ -1,0 +1,222 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe v1.3</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0e0e0e;
+      color: #00ffe1;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2rem;
+      text-shadow: 0 0 5px #00ffe1;
+    }
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 5px;
+      margin: 20px 0;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      cursor: pointer;
+      border: 2px solid #00ffe1;
+      color: #00ffe1;
+      transition: box-shadow 0.3s;
+    }
+    .glow-hint {
+      box-shadow: 0 0 10px 4px #00ffcc;
+      animation: glow-pulse 1s infinite alternate;
+    }
+    @keyframes glow-pulse {
+      from {
+        box-shadow: 0 0 10px 4px #00ffcc;
+      }
+      to {
+        box-shadow: 0 0 20px 6px #00ffff;
+      }
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .controls-row {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #00ffe1;
+      color: #0e0e0e;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #historyBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #111;
+      color: #00ffe1;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 0.9rem;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe v1.3</h1>
+  <div id="gameBoard"></div>
+  <div class="controls">
+    <div class="controls-row">
+      <button onclick="startGame('1p')">1 Player</button>
+      <button onclick="startGame('2p')">2 Player</button>
+    </div>
+    <div class="controls-row">
+      <button onclick="showHint()">Hint</button>
+      <button onclick="resetGame()">Reset</button>
+    </div>
+  </div>
+  <button id="historyBtn" onclick="showHistory()">History</button>
+  <footer>Made by KingamerNep David</footer>
+  <script>
+    const boardElem = document.getElementById("gameBoard");
+    let board = Array(9).fill("");
+    let currentPlayer = "X";
+    let gameActive = true;
+    let gameMode = "2p";
+    let history = [];function drawBoard() {
+  boardElem.innerHTML = "";
+  board.forEach((cell, idx) => {
+    const cellElem = document.createElement("div");
+    cellElem.className = "cell";
+    cellElem.dataset.index = idx;
+    cellElem.textContent = cell;
+    cellElem.onclick = () => handleMove(idx);
+    boardElem.appendChild(cellElem);
+  });
+}
+
+function handleMove(idx) {
+  if (!gameActive || board[idx]) return;
+  board[idx] = currentPlayer;
+  drawBoard();
+  const winner = checkWinner();
+  if (winner) {
+    alert(`${winner} wins!`);
+    gameActive = false;
+    history.push({ result: `${winner} wins`, board: board.slice() });
+    return;
+  }
+  if (board.every(cell => cell)) {
+    alert("It's a draw!");
+    gameActive = false;
+    history.push({ result: "Draw", board: board.slice() });
+    return;
+  }
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  if (gameMode === "1p" && currentPlayer === "O") {
+    const move = getBestMove(board, "O");
+    setTimeout(() => handleMove(move), 300);
+  }
+}
+
+function getBestMove(board, player) {
+  const opponent = player === "X" ? "O" : "X";
+  for (let i = 0; i < board.length; i++) {
+    if (!board[i]) {
+      board[i] = player;
+      if (checkWinner() === player) {
+        board[i] = "";
+        return i;
+      }
+      board[i] = "";
+    }
+  }
+  for (let i = 0; i < board.length; i++) {
+    if (!board[i]) {
+      board[i] = opponent;
+      if (checkWinner() === opponent) {
+        board[i] = "";
+        return i;
+      }
+      board[i] = "";
+    }
+  }
+  const corners = [0, 2, 6, 8].filter(i => !board[i]);
+  if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+  const empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+  return empty[Math.floor(Math.random() * empty.length)];
+}
+
+function showHint() {
+  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('glow-hint'));
+  if (!gameActive) return;
+  const move = getBestMove(board, currentPlayer);
+  if (move !== null) {
+    const hintCell = document.querySelector(`.cell[data-index='${move}']`);
+    if (hintCell) hintCell.classList.add("glow-hint");
+  }
+}
+
+function checkWinner() {
+  const winPatterns = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  for (const pattern of winPatterns) {
+    const [a,b,c] = pattern;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return board[a];
+    }
+  }
+  return null;
+}
+
+function resetGame() {
+  board = Array(9).fill("");
+  currentPlayer = "X";
+  gameActive = true;
+  drawBoard();
+}
+
+function startGame(mode) {
+  gameMode = mode;
+  resetGame();
+}
+
+function showHistory() {
+  if (history.length === 0) return alert("No games played yet.");
+  let message = history.map((g, i) => `Game ${i + 1}: ${g.result}`).join("\n");
+  alert(message);
+}
+
+drawBoard();
+
+  </script>
+</body>
+</html>
