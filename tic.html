@@ -1,222 +1,412 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="ne">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tic Tac Toe v1.3</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #0e0e0e;
-      color: #00ffe1;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    h1 {
-      margin-bottom: 10px;
-      font-size: 2rem;
-      text-shadow: 0 0 5px #00ffe1;
-    }
-    #gameBoard {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 5px;
-      margin: 20px 0;
-    }
-    .cell {
-      width: 100px;
-      height: 100px;
-      background-color: #1a1a1a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      cursor: pointer;
-      border: 2px solid #00ffe1;
-      color: #00ffe1;
-      transition: box-shadow 0.3s;
-    }
-    .glow-hint {
-      box-shadow: 0 0 10px 4px #00ffcc;
-      animation: glow-pulse 1s infinite alternate;
-    }
-    @keyframes glow-pulse {
-      from {
-        box-shadow: 0 0 10px 4px #00ffcc;
-      }
-      to {
-        box-shadow: 0 0 20px 6px #00ffff;
-      }
-    }
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
-      align-items: center;
-    }
-    .controls-row {
-      display: flex;
-      gap: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #00ffe1;
-      color: #0e0e0e;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #historyBtn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background-color: #111;
-      color: #00ffe1;
-    }
-    footer {
-      margin-top: 30px;
-      font-size: 0.9rem;
-      opacity: 0.6;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NTC AI साथी</title>
+
+<!-- Nepali Font -->
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+
+<style>
+  :root{
+    --brand: #2e7d32;
+    --brand-light: #e8f5e9;
+    --bg: #f0f2f5;
+    --chat-bg: #ffffff;
+    --user-msg: #2e7d32;
+    --bot-msg: #f1f0f0;
+    --text: #1a1a1a;
+    --gray: #666;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Mukta', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh; /* Dynamic viewport height */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    background: var(--brand);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  .bot-avatar {
+    width: 40px; height: 40px;
+    background: white;
+    color: var(--brand);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+  }
+  .header-info h1 { margin: 0; font-size: 18px; font-weight: 700; }
+  .header-info p { margin: 0; font-size: 12px; opacity: 0.9; }
+.reset-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-right: auto;
+}
+
+  /* Chat Area */
+  .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .message {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    position: relative;
+    animation: popIn 0.3s ease;
+    word-wrap: break-word;
+  }
+  @keyframes popIn { from{opacity:0; transform:scale(0.9);} to{opacity:1; transform:scale(1);} }
+
+  .bot {
+    align-self: flex-start;
+    background: var(--bot-msg);
+    color: #000;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .user {
+    align-self: flex-end;
+    background: var(--user-msg);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  /* Interactive Cards inside Chat */
+  .action-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .card-title { font-weight: 700; margin-bottom: 4px; display:block; font-size: 14px; color: var(--brand); }
+  .card-desc { font-size: 12px; color: var(--gray); margin-bottom: 8px; display:block; }
+  .card-btn {
+    background: var(--brand);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 100%;
+    font-family: 'Mukta', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .card-btn:active { opacity: 0.8; }
+  .bot ul { padding-left: 20px; margin: 8px 0 0; }
+  .bot li { margin-bottom: 5px; }
+
+  /* Input Area */
+  .input-area {
+    background: white;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+  }
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    scrollbar-width: none; /* For Firefox */
+  }
+  .chips::-webkit-scrollbar { display: none; } /* For Chrome, Safari */
+  
+  .chip {
+    background: var(--brand-light);
+    color: var(--brand);
+    border: 1px solid var(--brand);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  
+  .input-row { display: flex; gap: 8px; }
+  .chat-input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 24px;
+    border: 1px solid #ccc;
+    font-family: 'Mukta', sans-serif;
+    font-size: 16px;
+    outline: none;
+  }
+  .chat-input:focus { border-color: var(--brand); }
+  .send-btn {
+    background: var(--brand);
+    color: white;
+    border: none;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+  }
+
+  /* Typing Indicator */
+  .typing { font-size: 12px; color: var(--gray); margin-left: 10px; display: none; }
+  .typing.show { display: block; margin-bottom: 10px; }
+
+</style>
 </head>
 <body>
-  <h1>Tic Tac Toe v1.3</h1>
-  <div id="gameBoard"></div>
-  <div class="controls">
-    <div class="controls-row">
-      <button onclick="startGame('1p')">1 Player</button>
-      <button onclick="startGame('2p')">2 Player</button>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="bot-avatar"><i class="fa-solid fa-robot"></i></div>
+    <div class="header-info">
+      <h1>NTC AI साथी</h1>
+      <p>सधैं अनलाइन</p>
     </div>
-    <div class="controls-row">
-      <button onclick="showHint()">Hint</button>
-      <button onclick="resetGame()">Reset</button>
+    <button class="reset-btn" onclick="location.reload()" title="Reset Chat"><i class="fa-solid fa-rotate-right"></i></button>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-container" id="chatBox">
+    <div class="typing" id="typingIndicator">NTC साथी टाइप गर्दैछ...</div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <!-- Quick Chips -->
+    <div class="chips">
+      <span class="chip" onclick="handleChip('ब्यालेन्स चेक')">💰 ब्यालेन्स</span>
+      <span class="chip" onclick="handleChip('रिचार्ज')">💳 रिचार्ज</span>
+      <span class="chip" onclick="handleChip('डाटा प्याक')">🌐 डाटा प्याक</span>
+      <span class="chip" onclick="handleChip('भ्वाइस प्याक')">📞 भ्वाइस</span>
+      <span class="chip" onclick="handleChip('सापटी')">💸 सापटी</span>
+      <span class="chip" onclick="handleChip('FNF सेवा')">👨‍👩‍👧‍👦 FNF सेवा</span>
+      <span class="chip" onclick="handleChip('मेरो नम्बर')">📱 मेरो नम्बर</span>
+    </div>
+
+    <div class="input-row">
+      <input type="text" id="userInput" class="chat-input" placeholder="यहाँ लेख्नुहोस्..." autocomplete="off" />
+      <button class="send-btn" id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
   </div>
-  <button id="historyBtn" onclick="showHistory()">History</button>
-  <footer>Made by KingamerNep David</footer>
-  <script>
-    const boardElem = document.getElementById("gameBoard");
-    let board = Array(9).fill("");
-    let currentPlayer = "X";
-    let gameActive = true;
-    let gameMode = "2p";
-    let history = [];function drawBoard() {
-  boardElem.innerHTML = "";
-  board.forEach((cell, idx) => {
-    const cellElem = document.createElement("div");
-    cellElem.className = "cell";
-    cellElem.dataset.index = idx;
-    cellElem.textContent = cell;
-    cellElem.onclick = () => handleMove(idx);
-    boardElem.appendChild(cellElem);
+
+<script>
+  const chatBox = document.getElementById('chatBox');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const typingIndicator = document.getElementById('typingIndicator');
+
+  // --- 1. Initial Greeting ---
+  window.onload = () => {
+    setTimeout(() => {
+      addBotMessage("नमस्ते! 🙏 म तपाईंको NTC AI साथी हुँ।");
+    }, 500);
+    setTimeout(() => {
+      addBotMessage("तपाईंलाई ब्यालेन्स, रिचार्ज, डाटा प्याक, वा अन्य NTC सेवाहरूको बारेमा जानकारी चाहिएको छ? 'help' टाइप गरेर थप जान्नुहोस्।");
+    }, 1200);
+  };
+
+  // --- 2. Chat UI Logic ---
+  function addBotMessage(text, isHtml = false) {
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    if(isHtml) div.innerHTML = text;
+    else div.textContent = text;
+    chatBox.insertBefore(div, typingIndicator);
+    scrollToBottom();
+  }
+
+  function addUserMessage(text) {
+    const div = document.createElement('div');
+    div.className = 'message user';
+    div.textContent = text;
+    chatBox.insertBefore(div, typingIndicator);
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function showTyping(show) {
+    typingIndicator.className = show ? 'typing show' : 'typing';
+    if(show) scrollToBottom();
+  }
+
+  // --- 3. ENHANCED AI Response Logic ---
+  function processInput(text) {
+    const t = text.toLowerCase().trim();
+    if(!t) return;
+
+    showTyping(true);
+
+    setTimeout(() => {
+      showTyping(false);
+      const keywords = (arr) => arr.some(kw => t.includes(kw));
+
+      // --- Identity & Creator ---
+      if (keywords(['who are you', 'timi ko', 'नाम के हो', 'david', 'creator'])) {
+        addBotMessage("म NTC Helper AI हुँ, NTC सेवाहरूलाई सजिलो बनाउनको लागि David द्वारा सिर्जना गरिएको हुँ।");
+      }
+      else if (keywords(['I am good', 'ma thik chu', 'म आराम छु', 'i am fine', 'I am well'])) {
+        addBotMessage("त्यो राम्रो छ, अब भन्नुहोस् म तपाईंलाई के मद्दत गर्न सक्छु?");
+      }
+      else if (keywords(['susil', 'susila', 'सुसिल', 'dog', 'animal'])) {
+        addBotMessage("Hey Susil Dog! This AI was built by David.Here is nothing in one ruppess.");
+      setTimeout(() => {
+      addBotMessage("Sorry sorry,just kidding.");
+    }, 2500);
+      }
+      // --- Help Command ---
+      else if (keywords(['help', 'मदत', 'commands'])) {
+        addBotMessage(`म निम्न कुराहरूमा मद्दत गर्न सक्छु:
+          <ul>
+            <li><b>ब्यालेन्स:</b> Main र Pack ब्यालेन्स जाँच</li>
+            <li><b>रिचार्ज:</b> १६-अंकको पिन प्रयोग गरेर</li>
+            <li><b>डाटा/भ्वाइस प्याक:</b> लोकप्रिय प्याकहरू हेर्न</li>
+            <li><b>सापटी:</b> नमस्ते सापटी सेवा लिन</li>
+            <li><b>FNF:</b> Friends & Family सेवा</li>
+            <li><b>4G:</b> 4G एक्टिभेट गर्न</li>
+            <li><b>मेरो नम्बर:</b> आफ्नो नम्बर हेर्न</li>
+          </ul>`, true);
+      }
+      // --- Balance Inquiry ---
+      else if (keywords(['ब्यालेन्स', 'balance', 'पैसा', 'bal', 'blc'])) {
+        addBotMessage("तपाईं कुन ब्यालेन्स जाँच गर्न चाहनुहुन्छ?");
+        addCard("Main Balance", "मुख्य ब्यालेन्सको लागि (*400#)", "*400%23");
+        addCard("Pack Balance", "बाँकी डाटा/भ्वाइस प्याक (*1415*55#)", "*1415*55%23");
+      }
+      // --- Recharge Logic ---
+      else if (keywords(['रिचार्ज', 'recharge', 'pin', 'rc', 'topup']) || t.match(/\d{16}/)) {
+        const pinMatch = t.match(/\d{16}/);
+        if (pinMatch) {
+          const pin = pinMatch[0];
+          addBotMessage(`मैले पिन ${pin} प्राप्त गरें। रिचार्ज गर्न तल थिच्नुहोस्:`);
+          addCard("रिचार्ज गर्नुहोस्", `पिन: ${pin}`, `*412*${pin}%23`);
+        } else {
+          addBotMessage("रिचार्ज गर्नको लागि कृपया १६ अंकको पिन कोड यहाँ लेख्नुहोस् (उदाहरण: recharge 1234...)");
+        }
+      }
+      // --- Check Own Number ---
+      else if (keywords(['नम्बर', 'number', 'mero', 'my number'])) {
+        addBotMessage("तपाईंको आफ्नै मोबाइल नम्बर हेर्न:");
+        addCard("मेरो नम्बर चेक", "डायल *9#", "*9%23");
+      }
+      // --- Data Packs ---
+      else if (keywords(['डाटा', 'data', 'नेट', 'internet'])) {
+        addBotMessage("यहाँ केही लोकप्रिय डाटा प्याकहरू छन्:");
+        addCard("1GB Data (1 Day)", "Rs. 20 मा १ दिनको लागि", "*1415*1*1*3%23");
+        addCard("1Mbps Unlimited (24 Hr)", "Rs. 45 मा २४ घण्टाको लागि", "*1415*8*3%23");
+        addCard("28 Days Pack (599)", "हरेक दिन 1GB + All Net Voice", "*1415*1*4%23");
+      }
+       // --- Daily Data Packs ---
+      else if (keywords(['दैनिक डाटा', 'daily data', '24 hrs', 'daily use data'])) {
+        addBotMessage("यहाँ हाम्रो दैनिक २४ घण्टा डाटाको प्याक छ।:");
+        addCard("1Mbps Unlimited (24 Hr)", "Rs. 45 मा २४ घण्टाको लागि", "*1415*8*3%23");
+      }
+      // --- Voice Packs ---
+      else if (keywords(['भ्वाइस', 'voice', 'कल', 'call'])) {
+        addBotMessage("सस्तोमा कल गर्न यी प्याकहरू प्रयोग गर्नुहोस्:");
+        addCard("50 Min All Net (1 Day)", "Rs. 25 मा १ दिनको लागि", "*1415*2*1%23");
+        addCard("550 Min All Net (28 Days)", "Rs. 265 मा २८ दिनको लागि", "*1415*2*3%23");
+      }
+      // --- Namaste Sapati (Loan) ---
+      else if (keywords(['loan', 'सापटी', 'sapati'])) {
+        addBotMessage("नमस्ते सापटी सेवा लिनको लागि:");
+        addCard("नमस्ते सापटी", "डायल *1477#", "*1477%23");
+      }
+      // --- FNF Service ---
+      else if (keywords(['fnf', 'friends', 'family'])) {
+        addBotMessage("Friends and Family (FNF) सेवाको लागि:");
+        addCard("FNF सेवा", "डायल *1415*7#", "*1415*7%23");
+      }
+      // --- 4G Activation ---
+      else if (keywords(['4g', 'lte'])) {
+        addBotMessage("4G सेवा सुचारु गर्न:");
+        addCard("4G एक्टिभेट", "डायल *444#", "*444%23");
+      }
+      // --- Greetings ---
+      else if (keywords(['नमस्ते', 'hello', 'hi', 'namaste'])) {
+        addBotMessage("नमस्ते! आराम हुनुहुन्छ? मलाई भन्नुहोस् म के सेवा दिउँ?");
+      }
+      // --- Fallback Message ---
+      else {
+        addBotMessage("माफ गर्नुहोला, मैले तपाईंको कुरा बुझिन। कृपया 'डाटा', 'ब्यालेन्स', 'सापटी', वा 'help' जस्ता शब्दहरू प्रयोग गर्नुहोस्।Beacuse this is a first version of ai,which is made by David.");
+      }
+
+    }, 800); // Simulate realistic thinking delay
+  }
+
+  // --- Helper Function: Add Action Card to Chat ---
+  function addCard(title, desc, ussd) {
+    const div = document.createElement('div');
+    div.className = 'action-card';
+    div.innerHTML = `
+      <span class="card-title">${title}</span>
+      <span class="card-desc">${desc}</span>
+      <button class="card-btn" onclick="window.parent.location.href='tel:${ussd}'">
+        <i class="fa-solid fa-phone"></i> डायल गर्नुहोस्
+      </button>
+    `;
+    chatBox.insertBefore(div, typingIndicator);
+    scrollToBottom();
+  }
+  
+  // NOTE: Changed onclick to use window.parent.location.href to dial from the main page, not the iframe.
+
+  // --- Event Listeners ---
+  function handleSend() {
+    const text = userInput.value;
+    if(text.trim()) {
+      addUserMessage(text);
+      processInput(text);
+      userInput.value = '';
+    }
+  }
+
+  function handleChip(text) {
+    addUserMessage(text);
+    processInput(text);
+  }
+
+  sendBtn.addEventListener('click', handleSend);
+  userInput.addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') handleSend();
   });
-}
 
-function handleMove(idx) {
-  if (!gameActive || board[idx]) return;
-  board[idx] = currentPlayer;
-  drawBoard();
-  const winner = checkWinner();
-  if (winner) {
-    alert(`${winner} wins!`);
-    gameActive = false;
-    history.push({ result: `${winner} wins`, board: board.slice() });
-    return;
-  }
-  if (board.every(cell => cell)) {
-    alert("It's a draw!");
-    gameActive = false;
-    history.push({ result: "Draw", board: board.slice() });
-    return;
-  }
-  currentPlayer = currentPlayer === "X" ? "O" : "X";
-  if (gameMode === "1p" && currentPlayer === "O") {
-    const move = getBestMove(board, "O");
-    setTimeout(() => handleMove(move), 300);
-  }
-}
-
-function getBestMove(board, player) {
-  const opponent = player === "X" ? "O" : "X";
-  for (let i = 0; i < board.length; i++) {
-    if (!board[i]) {
-      board[i] = player;
-      if (checkWinner() === player) {
-        board[i] = "";
-        return i;
-      }
-      board[i] = "";
-    }
-  }
-  for (let i = 0; i < board.length; i++) {
-    if (!board[i]) {
-      board[i] = opponent;
-      if (checkWinner() === opponent) {
-        board[i] = "";
-        return i;
-      }
-      board[i] = "";
-    }
-  }
-  const corners = [0, 2, 6, 8].filter(i => !board[i]);
-  if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
-  const empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
-  return empty[Math.floor(Math.random() * empty.length)];
-}
-
-function showHint() {
-  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('glow-hint'));
-  if (!gameActive) return;
-  const move = getBestMove(board, currentPlayer);
-  if (move !== null) {
-    const hintCell = document.querySelector(`.cell[data-index='${move}']`);
-    if (hintCell) hintCell.classList.add("glow-hint");
-  }
-}
-
-function checkWinner() {
-  const winPatterns = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
-  ];
-  for (const pattern of winPatterns) {
-    const [a,b,c] = pattern;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a];
-    }
-  }
-  return null;
-}
-
-function resetGame() {
-  board = Array(9).fill("");
-  currentPlayer = "X";
-  gameActive = true;
-  drawBoard();
-}
-
-function startGame(mode) {
-  gameMode = mode;
-  resetGame();
-}
-
-function showHistory() {
-  if (history.length === 0) return alert("No games played yet.");
-  let message = history.map((g, i) => `Game ${i + 1}: ${g.result}`).join("\n");
-  alert(message);
-}
-
-drawBoard();
-
-  </script>
+</script>
 </body>
 </html>
